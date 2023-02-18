@@ -644,6 +644,27 @@ class _DisplayVideoState extends State<_DisplayVideo> {
   }
 
   @override
+  void didUpdateWidget(final  oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if(controller!=null){
+        controller.dispose();
+      }
+      controller = VideoPlayerController.file(widget.selectedFile);
+
+      initializeVideoPlayerFuture = controller.initialize().then((value) {
+
+
+        setState(() {
+        controller.play();
+
+        });
+      },);
+      controller.setLooping(true);
+    });
+  }
+
+  @override
   void dispose() {
     controller.dispose();
     super.dispose();

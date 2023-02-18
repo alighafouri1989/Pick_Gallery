@@ -222,9 +222,9 @@ class _MyHomePageState extends State<MyHomePage> {
         Navigator.of(context).push(CupertinoDialogRoute(
             builder: (context) => CustomGalleryDisplay.instagramDisplay(
                 displaySource: DisplaySource.both,
-                pickerSource: PickerSource.both,
+                pickerSource: PickerSource.video,
                 multiSelection: true,
-                cropImage: false,
+                cropImage: true,
                 galleryDisplaySettings: GalleryDisplaySettings(
                     appTheme: AppTheme(
                         primaryColor: Colors.black, focusColor: Colors.white),
