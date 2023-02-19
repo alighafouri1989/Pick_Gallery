@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 class CustomGalleryDisplay extends StatefulWidget {
   final DisplaySource displaySource;
   final bool multiSelection;
+  final int maxLength;
   final GalleryDisplaySettings? galleryDisplaySettings;
   final AsyncValueSetter<SelectedImagesDetails> onDone;
   final PickerSource pickerSource;
@@ -20,15 +21,18 @@ class CustomGalleryDisplay extends StatefulWidget {
     this.displaySource = DisplaySource.gallery,
     this.multiSelection = false,
     this.galleryDisplaySettings,
+    this.maxLength = 20,
     this.pickerSource = PickerSource.image,
     required this.onDone,
     super.key,
   })  : showImagePreview = false,
         cropImage = false;
+
   const CustomGalleryDisplay.instagramDisplay({
     this.displaySource = DisplaySource.gallery,
     this.multiSelection = false,
     this.galleryDisplaySettings,
+    this.maxLength = 20,
     this.pickerSource = PickerSource.image,
     this.cropImage = true,
     required this.onDone,
@@ -39,13 +43,13 @@ class CustomGalleryDisplay extends StatefulWidget {
   CustomGalleryDisplayState createState() => CustomGalleryDisplayState();
 }
 
-class CustomGalleryDisplayState extends State<CustomGalleryDisplay>
-    with TickerProviderStateMixin {
+class CustomGalleryDisplayState extends State<CustomGalleryDisplay> with TickerProviderStateMixin {
   final pageController = ValueNotifier(PageController());
   final clearVideoRecord = ValueNotifier(false);
   final redDeleteText = ValueNotifier(false);
   final selectedPage = ValueNotifier(SelectedPage.left);
   ValueNotifier<List<File>> multiSelectedImage = ValueNotifier([]);
+  late int maxLength;
   final multiSelectionMode = ValueNotifier(false);
   final showDeleteText = ValueNotifier(false);
   final selectedVideo = ValueNotifier(false);
@@ -79,13 +83,13 @@ class CustomGalleryDisplayState extends State<CustomGalleryDisplay>
 
   @override
   void initState() {
+    maxLength = widget.maxLength;
     _initializeVariables();
     super.initState();
   }
 
   _initializeVariables() {
-    imagePickerDisplay =
-        widget.galleryDisplaySettings ?? GalleryDisplaySettings();
+    imagePickerDisplay = widget.galleryDisplaySettings ?? GalleryDisplaySettings();
     appTheme = imagePickerDisplay.appTheme ?? AppTheme();
     tapsNames = imagePickerDisplay.tabsTexts ?? TabsTexts();
     cropImage = widget.cropImage;
@@ -102,12 +106,9 @@ class CustomGalleryDisplayState extends State<CustomGalleryDisplay>
     enableVideo = showInternalVideos && notGallery;
     bool cameraAndVideoEnabled = enableCamera && enableVideo;
 
-    showTabBar = (cameraAndVideoEnabled) ||
-        (showGallery && enableVideo) ||
-        (showGallery && enableCamera);
+    showTabBar = (cameraAndVideoEnabled) || (showGallery && enableVideo) || (showGallery && enableCamera);
 
-    cameraVideoOnlyEnabled =
-        cameraAndVideoEnabled && widget.displaySource == DisplaySource.camera;
+    cameraVideoOnlyEnabled = cameraAndVideoEnabled && widget.displaySource == DisplaySource.camera;
     showAllTabs = cameraAndVideoEnabled && showGallery;
     whiteColor = appTheme.primaryColor;
     blackColor = appTheme.focusColor;
@@ -157,17 +158,10 @@ class CustomGalleryDisplayState extends State<CustomGalleryDisplay>
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              if (isThatDeleteText)
-                Icon(Icons.arrow_back_ios_rounded,
-                    color: deleteColor, size: 15),
+              if (isThatDeleteText) Icon(Icons.arrow_back_ios_rounded, color: deleteColor, size: 15),
               Text(
-                isThatDeleteText
-                    ? tapsNames.deletingText
-                    : tapsNames.limitingText,
-                style: TextStyle(
-                    fontSize: 14,
-                    color: deleteColor,
-                    fontWeight: FontWeight.w500),
+                isThatDeleteText ? tapsNames.deletingText : tapsNames.limitingText,
+                style: TextStyle(fontSize: 14, color: deleteColor, fontWeight: FontWeight.w500),
               ),
             ],
           ),
@@ -193,10 +187,7 @@ class CustomGalleryDisplayState extends State<CustomGalleryDisplay>
             children: [
               Text(
                 tapsNames.clearImagesText,
-                style: TextStyle(
-                    fontSize: 14,
-                    color: appTheme.focusColor,
-                    fontWeight: FontWeight.w500),
+                style: TextStyle(fontSize: 14, color: appTheme.focusColor, fontWeight: FontWeight.w500),
               ),
             ],
           ),
@@ -217,8 +208,7 @@ class CustomGalleryDisplayState extends State<CustomGalleryDisplay>
   }
 
   DefaultTabController tabController() {
-    return DefaultTabController(
-        length: 2, child: Material(color: whiteColor, child: safeArea()));
+    return DefaultTabController(length: 2, child: Material(color: whiteColor, child: safeArea()));
   }
 
   SafeArea safeArea() {
@@ -229,8 +219,7 @@ class CustomGalleryDisplayState extends State<CustomGalleryDisplay>
           Flexible(
             child: ValueListenableBuilder(
               valueListenable: pageController,
-              builder: (context, PageController pageControllerValue, child) =>
-                  PageView(
+              builder: (context, PageController pageControllerValue, child) => PageView(
                 controller: pageControllerValue,
                 dragStartBehavior: DragStartBehavior.start,
                 physics: const NeverScrollableScrollPhysics(),
@@ -241,7 +230,7 @@ class CustomGalleryDisplayState extends State<CustomGalleryDisplay>
               ),
             ),
           ),
-          if (multiSelectedImage.value.length < 10) ...[
+          if (multiSelectedImage.value.length < widget.maxLength) ...[
             ValueListenableBuilder(
               valueListenable: multiSelectionMode,
               builder: (context, bool multiSelectionModeValue, child) {
@@ -259,9 +248,7 @@ class CustomGalleryDisplayState extends State<CustomGalleryDisplay>
                     );
                   }
                 } else {
-                  return multiSelectionModeValue
-                      ? clearSelectedImages()
-                      : const SizedBox();
+                  return multiSelectionModeValue ? clearSelectedImages() : const SizedBox();
                 }
               },
             )
@@ -325,9 +312,7 @@ class CustomGalleryDisplayState extends State<CustomGalleryDisplay>
       builder: (context, bool showDeleteTextValue, child) => AnimatedSwitcher(
         duration: const Duration(milliseconds: 200),
         switchInCurve: Curves.easeInOutQuart,
-        child: showTabBar
-            ? (showDeleteTextValue ? tapBarMessage(true) : tabBar())
-            : const SizedBox(),
+        child: showTabBar ? (showDeleteTextValue ? tapBarMessage(true) : tabBar()) : const SizedBox(),
       ),
     );
   }
@@ -339,8 +324,7 @@ class CustomGalleryDisplayState extends State<CustomGalleryDisplay>
     return ValueListenableBuilder(
       valueListenable: selectedPage,
       builder: (context, SelectedPage selectedPageValue, child) {
-        Color photoColor =
-            selectedPageValue == SelectedPage.center ? blackColor : Colors.grey;
+        Color photoColor = selectedPageValue == SelectedPage.center ? blackColor : Colors.grey;
         return Stack(
           alignment: Alignment.bottomLeft,
           children: [
@@ -354,11 +338,7 @@ class CustomGalleryDisplayState extends State<CustomGalleryDisplay>
             AnimatedPositioned(
               duration: const Duration(milliseconds: 500),
               curve: Curves.easeInOutQuad,
-              right: selectedPageValue == SelectedPage.center
-                  ? widthOfTab
-                  : (selectedPageValue == SelectedPage.right
-                      ? 0
-                      : (divideNumber == 2 ? widthOfTab : widthOfScreen / 1.5)),
+              right: selectedPageValue == SelectedPage.center ? widthOfTab : (selectedPageValue == SelectedPage.right ? 0 : (divideNumber == 2 ? widthOfTab : widthOfScreen / 1.5)),
               child: Container(height: 1, width: widthOfTab, color: blackColor),
             ),
           ],
@@ -367,8 +347,7 @@ class CustomGalleryDisplayState extends State<CustomGalleryDisplay>
     );
   }
 
-  GestureDetector galleryTabBar(
-      double widthOfTab, SelectedPage selectedPageValue) {
+  GestureDetector galleryTabBar(double widthOfTab, SelectedPage selectedPageValue) {
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -381,12 +360,7 @@ class CustomGalleryDisplayState extends State<CustomGalleryDisplay>
         child: Center(
           child: Text(
             tapsNames.galleryText,
-            style: TextStyle(
-                color: selectedPageValue == SelectedPage.left
-                    ? blackColor
-                    : Colors.grey,
-                fontSize: 14,
-                fontWeight: FontWeight.w500),
+            style: TextStyle(color: selectedPageValue == SelectedPage.left ? blackColor : Colors.grey, fontSize: 14, fontWeight: FontWeight.w500),
           ),
         ),
       ),
@@ -395,18 +369,14 @@ class CustomGalleryDisplayState extends State<CustomGalleryDisplay>
 
   GestureDetector photoTabBar(double widthOfTab, Color textColor) {
     return GestureDetector(
-      onTap: () => centerPage(
-          numPage: cameraVideoOnlyEnabled ? 0 : 1,
-          selectedPage:
-              cameraVideoOnlyEnabled ? SelectedPage.left : SelectedPage.center),
+      onTap: () => centerPage(numPage: cameraVideoOnlyEnabled ? 0 : 1, selectedPage: cameraVideoOnlyEnabled ? SelectedPage.left : SelectedPage.center),
       child: SizedBox(
         width: widthOfTab,
         height: 40,
         child: Center(
           child: Text(
             tapsNames.photoText,
-            style: TextStyle(
-                color: textColor, fontSize: 14, fontWeight: FontWeight.w500),
+            style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.w500),
           ),
         ),
       ),
@@ -418,9 +388,7 @@ class CustomGalleryDisplayState extends State<CustomGalleryDisplay>
 
     setState(() {
       this.selectedPage.value = selectedPage;
-      pageController.value.animateToPage(numPage,
-          duration: const Duration(milliseconds: 400),
-          curve: Curves.easeInOutQuad);
+      pageController.value.animateToPage(numPage, duration: const Duration(milliseconds: 400), curve: Curves.easeInOutQuad);
       selectedVideo.value = false;
     });
   }
@@ -430,9 +398,7 @@ class CustomGalleryDisplayState extends State<CustomGalleryDisplay>
       onTap: () {
         setState(
           () {
-            pageController.value.animateToPage(cameraVideoOnlyEnabled ? 0 : 1,
-                duration: const Duration(milliseconds: 400),
-                curve: Curves.easeInOutQuad);
+            pageController.value.animateToPage(cameraVideoOnlyEnabled ? 0 : 1, duration: const Duration(milliseconds: 400), curve: Curves.easeInOutQuad);
             selectedPage.value = SelectedPage.right;
             selectedVideo.value = true;
           },
@@ -446,10 +412,7 @@ class CustomGalleryDisplayState extends State<CustomGalleryDisplay>
           builder: (context, bool selectedVideoValue, child) => Center(
             child: Text(
               tapsNames.videoText,
-              style: TextStyle(
-                  fontSize: 14,
-                  color: selectedVideoValue ? blackColor : Colors.grey,
-                  fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 14, color: selectedVideoValue ? blackColor : Colors.grey, fontWeight: FontWeight.w500),
             ),
           ),
         ),
